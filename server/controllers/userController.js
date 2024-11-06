@@ -34,8 +34,8 @@ export const loginController = async (req, res) => {
     const {mail, password} = req.body
 
     const checkUser = await users.find({mail: mail});
-
     if(checkUser.length > 0){
+        console.log(mail, " ", password)
         const cryptr = new Cryptr('myTotallySecretKey');
         const desencryptPass = cryptr.decrypt(checkUser[0].password)
 
@@ -44,11 +44,11 @@ export const loginController = async (req, res) => {
             res.send(checkUser)
         }else{
             console.log('La contraseña es incorrecta')
-            res.sendStatus(200)
+            res.status(200).json(1)
         }
     }else{
         console.log('no se encuentra el usuario')
-        res.sendStatus(200)
+        res.status(200).json(2)
     }
 }
 

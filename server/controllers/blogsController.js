@@ -69,8 +69,8 @@ export const editBlogsController = async (req, res) => {
 
     const {blogId, title, category, subtitle, description} = req.body;
     const date = Date.now()
-
-    if(!req.files.titleImg && !req.files.imgProfile){
+    console.log("blogid", blogId, " title", title, " category", category, " ", req.file)
+    if(!req.file){
         await blogs.updateOne(
             {_id: blogId},
             {
@@ -86,7 +86,7 @@ export const editBlogsController = async (req, res) => {
         res.sendStatus(200)
     }
 
-    let imgProfileUploadPromise
+   /* let imgProfileUploadPromise
 
     if(req.files.imgProfile){
         imgProfileUploadPromise = new Promise((resolve, reject) => {
@@ -99,11 +99,11 @@ export const editBlogsController = async (req, res) => {
             );
             stream.end(req.files.imgProfile[0].buffer);
         });
-    }
+    }*/
 
     let titleImgUploadPromise
 
-    if(req.files.titleImg){
+    if(req.file){
         titleImgUploadPromise = new Promise((resolve, reject) => {
             const stream = cloudinary.uploader.upload_stream(
                 { folder: 'psycho' },
@@ -112,22 +112,21 @@ export const editBlogsController = async (req, res) => {
                     resolve(result.secure_url);
                 }
             );
-            stream.end(req.files.titleImg[0].buffer);
+            stream.end(req.file.buffer);
         });
 
     }
 
-    const [imgProfileUrl, titleImgUrl] = await Promise.all([
-        imgProfileUploadPromise,
+    const [/*imgProfileUrl,*/ titleImgUrl] = await Promise.all([
+       // imgProfileUploadPromise,
         titleImgUploadPromise
     ]);
 
-    if(imgProfileUrl && titleImgUrl){
+    if(titleImgUrl){
         await blogs.updateOne(
             {_id: blogId},
             {
                 $set:{
-                    imgProfile: imgProfileUrl,
                     title: title,
                     category: category,
                     subtitle: subtitle,
@@ -138,36 +137,6 @@ export const editBlogsController = async (req, res) => {
             }
         )
         res.sendStatus(200)
-    }else if(imgProfileUrl && !titleImgUrl){
-        await blogs.updateOne(
-            {_id: blogId},
-            {
-                $set:{
-                    imgProfile: imgProfileUrl,
-                    title: title,
-                    category: category,
-                    subtitle: subtitle,
-                    description: description,
-                    date: date
-                }
-            }
-        )
-    res.sendStatus(200)
-    }else if(!imgProfileUrl && titleImgUrl){
-        await blogs.updateOne(
-            {_id: blogId},
-            {
-                $set:{
-                    title: title,
-                    category: category,
-                    subtitle: subtitle,
-                    titleImg: titleImgUrl,
-                    description: description,
-                    date: date
-                }
-            }
-    )
-    res.sendStatus(200)
     }
 }
 
@@ -176,7 +145,28 @@ export const getBlogsController = async (req, res) => {
     res.send(getBlogs)
 }
 
+export const readBlogController = async (req, res) => {
+    const blogId = req.params.blogId
+    const getBlog = await blogs.find({_id: blogId})
+
+    res.send(getBlog)
+}
+
 export const deleteAllBlogsController = async () => {
     await blogs.deleteMany();
     res.sendStatus(200)
+}
+
+export const deleteOneBlogController = async (req, res) => {
+    const blogId = req.params.blogId
+
+    const itsOk = await blogs.deleteOne(
+        {_id: blogId}
+    )
+    
+    if(itsOk.length > 0){
+        res.status(200).send("El blog fue borrado correctamente")
+    }else{
+        res.status(200).send("Hubo un error al borrar el blog")
+    }
 }

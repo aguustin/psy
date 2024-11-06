@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createBlogController, editBlogsController, getBlogsController, deleteAllBlogsController } from "../controllers/blogsController.js";
+import { createBlogController, editBlogsController, getBlogsController, deleteAllBlogsController, deleteOneBlogController, readBlogController } from "../controllers/blogsController.js";
 import upload from "../middleware/multer.js";
 
 const router = Router()
@@ -16,6 +16,12 @@ router.post('/update_blog', upload.fields([
 
 router.get('/get_blogs', getBlogsController);
 
+router.get('/readBlog/:blogId', readBlogController);
+
+router.post('/editBlog', upload.single('titleImg'), editBlogsController);
+
 router.delete('/deleteAllBlogs', deleteAllBlogsController);
+
+router.delete('/deleteOneBlog/:blogId', deleteOneBlogController);
 
 export default router
